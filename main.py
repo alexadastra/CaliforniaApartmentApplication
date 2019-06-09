@@ -22,7 +22,7 @@ class DataFrame(tk.Frame):
         super().__init__(master)
 
         self.master = master
-        self.master.title('Анализируем бомжатник')
+        self.master.title('Квартиры Калифорнии')
         self.master.geometry('1340x650+0+0')
 
         self.titles = ["longitude", "latitude", "housing_median_age", "total_rooms", "total_bedrooms",
