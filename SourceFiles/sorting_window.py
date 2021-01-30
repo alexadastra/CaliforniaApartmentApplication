@@ -27,7 +27,7 @@ class SortingWindow(tk.Toplevel):  # Окно сортировки данных 
         self.resizable(True, True)
 
         self.parameter_entry.config(yscrollcommand=self.scroll.set)
-        for i in [0, 1, 2, 3, 4, 5, 6, 7, 9]:
+        for i in range(10):
             self.parameter_entry.insert(tk.END, str(self.master.dataset.columns[i]))
 
         self.parameter_label.grid(row=0, column=0)
@@ -75,4 +75,4 @@ class SortingWindow(tk.Toplevel):  # Окно сортировки данных 
                 except IndexError:
                     break
             tuple(cells)
-            self.window.table.insert('', 'end', text=str(j), values=cells)
+            self.window.table.insert('', 'end', text=str(i), values=cells)

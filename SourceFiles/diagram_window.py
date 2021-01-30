@@ -14,7 +14,7 @@ class WiskerWindow(tk.Toplevel):  # Окно вывода диаграммы Б�
         self.plot = None
 
         self.parameter_label = tk.Label(self, width=30, text='Укажите параметры поиска', anchor='w')
-        self.parameter_entry = tk.Listbox(self, width=30, height=8, selectmode=tk.SINGLE)
+        self.parameter_entry = tk.Listbox(self, width=30, height=9, selectmode=tk.SINGLE)
         for i in [0, 1, 2, 3, 4, 5, 6, 7, 9]:
             self.parameter_entry.insert(tk.END, str(self.master.dataset.columns[i]))
             self.button = tk.Button(self, text='Найти', command=self.box_visc)

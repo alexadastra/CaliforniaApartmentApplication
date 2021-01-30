@@ -9,15 +9,16 @@ class GradationWindow(tk.Toplevel):  # Окно вывода диаграммы 
     def __init__(self, master):
         super().__init__()
         self.master = master
-        self.data = self.master.dataset
+        self.new = self.master.dataset.copy()
         self.title("Диаграмма рассеивания")
         self.im = tk.PhotoImage
         self.label = tk.Label(self)
         self.image = None
+        self.california_img = mpimg.imread(filedialog.askopenfilename(defaultextension=".png"))
 
         self.parameter_label = tk.Label(self, width=30, text='Укажите параметры поиска', anchor='w')
-        self.parameter_entry = tk.Listbox(self, width=30, height=7, selectmode=tk.SINGLE)
-        for i in range(2, 9):
+        self.parameter_entry = tk.Listbox(self, width=30, height=8, selectmode=tk.SINGLE)
+        for i in range(2, 10):
             self.parameter_entry.insert(tk.END, str(self.master.dataset.columns[i]))
 
         self.button = tk.Button(self, text='Найти', command=self.grad) # Сохранение диаграммы в новый файл
@@ -33,16 +34,15 @@ class GradationWindow(tk.Toplevel):  # Окно вывода диаграммы 
         self.focus_set()
 
     def grad(self):  # Функция создания и отображения диаграммы рассеивания
-        self.data.ocean_proximity, value = self.data.ocean_proximity.factorize()
+        self.new.ocean_proximity, value = self.new.ocean_proximity.factorize()
         if len(self.parameter_entry.curselection()) == 0:
             string = 'ocean_proximity'
         else:
             string = self.master.dataset.columns[self.parameter_entry.curselection()[0] + 2]
 
-        california_img = mpimg.imread('C:\california.png')
-        self.image = self.data.plot.scatter(x='longitude', y='latitude', s=self.data['population'] / 100,
+        self.image = self.new.plot.scatter(x='longitude', y='latitude', s=self.new['population'] / 100,
                                             label='Population', alpha=0.8, c=string, colormap='jet', figsize=(10, 5))
-        plt.imshow(california_img, extent=[-124.55, -113.80, 32.45, 42.05], alpha=0.5, cmap=plt.get_cmap('jet'))
+        plt.imshow(self.california_img, extent=[-124.55, -113.80, 32.45, 42.05], alpha=0.5, cmap=plt.get_cmap('jet'))
         plt.ylabel("Latitude", fontsize=14)
         plt.xlabel("Longitude", fontsize=14)
         plt.title("Распределение классов")
