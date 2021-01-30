@@ -2,16 +2,16 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox
 import numpy as np
+import pandas as pd
+from writing_file_window import new_csv
 
-from static_report_window import SaveFile
 
-
-class TextWindow(tk.Toplevel):
+class TextWindow(tk.Toplevel):  # Окно вывода текстового отчета по выбранным индексам и атрибутам
     def __init__(self, master):
         super().__init__()
         self.master = master
         self.search_columns = []
-        self.new_dataset = 0
+        self.new_dataset = pd.DataFrame
         self.begin_label = tk.Label(self, width=30, text='Укажите начальный индекс', anchor='w')
         self.begin_entry = tk.Spinbox(self, width=30)
 
@@ -22,7 +22,7 @@ class TextWindow(tk.Toplevel):
         self.parameter_entry = tk.Listbox(self, width=30, height=5, selectmode=tk.EXTENDED)
         self.scroll = tk.Scrollbar(self, orient=tk.VERTICAL, command=self.parameter_entry.yview)
 
-        self.button = tk.Button(self, text='Найти', command=self.search)
+        self.button = tk.Button(self, text='Найти', command=self.try_search)
 
         self.new_table = ttk.Treeview(self, height=13, selectmode=tk.EXTENDED)
         self.new_scroll = tk.Scrollbar(self, command=self.new_table.yview)
@@ -32,7 +32,7 @@ class TextWindow(tk.Toplevel):
 
         self.init_child()
 
-    def init_child(self):
+    def init_child(self):  # Упаковка выджетов
         self.title('Текстовый отчёт')
         self.geometry('500x220+100+100')
         self.resizable(True, True)
@@ -55,8 +55,13 @@ class TextWindow(tk.Toplevel):
         self.grab_set()
         self.focus_set()
 
-    def search(self):
-        self.geometry('500x400')
+    def try_search(self):  # Функция проверки на существование данных в БД
+        self.new_dataset = self.searching()
+        if not self.new_dataset.empty:
+            self.search()
+
+    def search(self):  # Функция поиска данных в БД по выбранным индексам
+        self.geometry('350x400')
         self.begin_label.grid_remove()
         self.begin_entry.grid_remove()
         self.end_label.grid_remove()
@@ -66,7 +71,6 @@ class TextWindow(tk.Toplevel):
         self.scroll.grid_remove()
         self.button.grid_remove()
 
-        self.new_dataset = self.searching()
         self.new_table.column('#0', width=100, stretch=tk.YES)
         self.new_table["columns"] = self.search_columns
         self.new_table.heading('#0', text='number')
@@ -87,11 +91,11 @@ class TextWindow(tk.Toplevel):
             self.new_table.insert('', 'end', text=str(i), values=cells)
 
         self.new_table.grid(row=0, column=0)
-        self.new_scroll.grid(row=0, column=1, sticky='w', ipady=50)
+        self.new_scroll.grid(row=0, column=1, sticky='w', ipady=70)
         self.save_button.grid(row=1, column=0, columnspan=2, ipadx=100)
         self.reset_button.grid(row=2, column=0, columnspan=2, ipadx=100)
 
-    def searching(self):
+    def searching(self):  # Функция вывода ошибки при неверно введенных данных
         if self.begin_entry.get() == '' or self.end_entry.get() == '' or len(self.parameter_entry.curselection()) == 0:
             messagebox.showinfo("Ошибка!", "Невведённые данные")
         else:
@@ -101,31 +105,27 @@ class TextWindow(tk.Toplevel):
             except ValueError:
                 messagebox.showinfo("Ошибка!", "Некорректные данные")
             else:
-                if len(self.master.dataset) < start < 0:
+                if len(self.master.dataset) < start or start < 0:
                     messagebox.showinfo("Ошибка!", "Начальный индекс вне диапазона!")
                 elif len(self.master.dataset) < finish:
                     messagebox.showinfo("Ошибка!", "Конечный ииндекс вне диапазона!")
                 elif finish <= start:
                     messagebox.showinfo("Ошибка!", "Значение конца диапазона должно быть больше значения его начала!")
                 else:
-                    # print("Индексы от '{}' до '{}'".format(start, finish))
                     columns = self.master.dataset.columns
-                    print(len(self.parameter_entry.curselection()))
                     self.search_columns = [columns[self.parameter_entry.curselection()[i]]
                                       for i in range(len(self.parameter_entry.curselection()))]
-                    # print("Названия столбцов: {}".format(search_columns))
                     array = np.array([])
                     for i in np.arange(len(self.search_columns)):
                         array = np.append(array, self.search_columns[i])
-                    array = list(set(array))  # Убираем повторяющиеся строки
 
                     sub_dataset = self.master.dataset.loc[start: finish, array]
                     return sub_dataset
 
-    def save(self):
-        SaveFile(self.new_dataset)
+    def save(self):  # Функция сохранения текстового отчета в файл
+        new_csv(self.master, self.new_dataset, '')
 
-    def reset(self):
+    def reset(self):  # Функция для ввода данных для нового отчета
         self.new_table.delete(*self.new_table.get_children())
         self.new_table.grid_remove()
         self.new_scroll.grid_remove()

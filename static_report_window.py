@@ -1,14 +1,14 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox
-import numpy as np
-from writing_file_window import SaveFile
+from writing_file_window import new_csv
 
-class StaticWindow(tk.Toplevel):
+
+class StaticWindow(tk.Toplevel):  # Окно вывода статистического отчета
     def __init__(self, master):
         super().__init__()
         self.master = master
-        self.geometry('400x200')
+        self.geometry('420x150')
         self.resizable(True, True)
 
         self.mass = []
@@ -33,7 +33,7 @@ class StaticWindow(tk.Toplevel):
         self.grab_set()
         self.focus_set()
 
-    def report(self):
+    def report(self):  # Функция вывода статистического отчета по выбранным атрибутам
         if len(self.parameter_entry.curselection()) == 0:
             messagebox.showinfo("Ошибка!", "Не указаны параметры!")
         else:
@@ -69,7 +69,7 @@ class StaticWindow(tk.Toplevel):
             self.save_button.grid(row=2, column=0, ipadx=100)
             self.reset_button.grid(row=3, column=0, ipadx=100)
 
-    def reset(self):
+    def reset(self):  # Функция для вывода другого отчета по новым атрибутам
         self.geometry('400x200')
         self.new_table.delete(*self.new_table.get_children())
         self.new_table.grid_remove()
@@ -81,15 +81,14 @@ class StaticWindow(tk.Toplevel):
         self.scroll.grid()
         self.button.grid()
 
-    def save(self):
-        SaveFile(self.new_dataset)
+    def save(self):  # Функция сохранения отчета в новый файл
+        new_csv(self.master, self.new_dataset, '')
 
     def describing(self, dataset):
         columns = dataset.columns
         self.mass = [columns[self.parameter_entry.curselection()[i]]
-                               for i in range(len(self.parameter_entry.curselection()))]
+                     for i in range(len(self.parameter_entry.curselection()))]
 
         new_dataset = dataset[self.mass]
         variable = new_dataset.describe()
         return variable
-

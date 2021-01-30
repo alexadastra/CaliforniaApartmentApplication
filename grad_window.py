@@ -1,33 +1,58 @@
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-
+from tkinter import filedialog
 import tkinter as tk
 import os
 
 
-class GradationWindow(tk.Toplevel):
+class GradationWindow(tk.Toplevel):  # Окно вывода диаграммы рассеивания в приложении
     def __init__(self, master):
         super().__init__()
         self.master = master
+        self.data = self.master.dataset
         self.title("Диаграмма рассеивания")
+        self.im = tk.PhotoImage
+        self.label = tk.Label(self)
+        self.image = None
+
+        self.parameter_label = tk.Label(self, width=30, text='Укажите параметры поиска', anchor='w')
+        self.parameter_entry = tk.Listbox(self, width=30, height=7, selectmode=tk.SINGLE)
+        for i in range(2, 9):
+            self.parameter_entry.insert(tk.END, str(self.master.dataset.columns[i]))
+
+        self.button = tk.Button(self, text='Найти', command=self.grad) # Сохранение диаграммы в новый файл
+        self.parameter_entry.grid(row=0, column=1)
+        self.button.grid(row=1, column=1)
 
         self.grad()
 
-        self.im = tk.PhotoImage(file='pic.png')
-        self.label = tk.Label(self, image=self.im)
-        self.label.pack()
+        self.save_button = tk.Button(self, text='Сохранить отчёт', command=self.saving)
+        self.save_button.grid(row=1, column=0)
 
         self.grab_set()
         self.focus_set()
-        os.remove("pic.png")
 
-    def grad(self):
-        self.master.dataset.ocean_proximity, value = self.master.dataset.ocean_proximity.factorize()
+    def grad(self):  # Функция создания и отображения диаграммы рассеивания
+        self.data.ocean_proximity, value = self.data.ocean_proximity.factorize()
+        if len(self.parameter_entry.curselection()) == 0:
+            string = 'ocean_proximity'
+        else:
+            string = self.master.dataset.columns[self.parameter_entry.curselection()[0] + 2]
+
         california_img = mpimg.imread('C:\california.png')
-        image = self.master.dataset.plot.scatter(x='longitude', y='latitude', s=self.master.dataset['population'] / 100, label='Population',
-                                  alpha=0.8, c='ocean_proximity', colormap='jet', figsize=(10, 5))
+        self.image = self.data.plot.scatter(x='longitude', y='latitude', s=self.data['population'] / 100,
+                                            label='Population', alpha=0.8, c=string, colormap='jet', figsize=(10, 5))
         plt.imshow(california_img, extent=[-124.55, -113.80, 32.45, 42.05], alpha=0.5, cmap=plt.get_cmap('jet'))
         plt.ylabel("Latitude", fontsize=14)
         plt.xlabel("Longitude", fontsize=14)
         plt.title("Распределение классов")
-        image.figure.savefig('pic.png')
+        self.image.figure.savefig('pic.png')
+        self.im = tk.PhotoImage(file='pic.png')
+        self.label.config(image=self.im)
+        self.label.grid(row=0, column=0)
+        os.remove('pic.png')
+
+    def saving(self):  # Функция сохранения диаграммы в новый файл в формате png
+        file = filedialog.asksaveasfilename(defaultextension=".png")
+        if file:
+            self.image.figure.savefig(file)

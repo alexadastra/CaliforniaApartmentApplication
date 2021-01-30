@@ -2,38 +2,38 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox
 import numpy as np
+import pandas as pd
+from writing_file_window import new_csv
 
-from static_report_window import SaveFile
 
-
-class SearchingWindow(tk.Toplevel):
+class SearchingWindow(tk.Toplevel):  # Окно поиска значений по индексу и атрибутам
     def __init__(self, master):
         super().__init__()
         self.master = master
         self.search_columns = []
-        self.new_dataset = 0
+        self.new_dataset = pd.DataFrame
         self.begin_label = tk.Label(self, width=30, text='Укажите начальный индекс', anchor='w')
         self.begin_entry = tk.Spinbox(self, width=30)
 
         self.end_label = tk.Label(self, width=30, text='Укажите конечный индекс', anchor='w')
         self.end_entry = tk.Spinbox(self, width=30)
 
-        self.parameter_label = tk.Label(self, width=30, text='Укажите параметры выборки', anchor='w')
+        self.parameter_label = tk.Label(self, width=30, text='Укажите параметры поиска', anchor='w')
         self.parameter_entry = tk.Listbox(self, width=30, height=5, selectmode=tk.EXTENDED)
         self.scroll = tk.Scrollbar(self, orient=tk.VERTICAL, command=self.parameter_entry.yview)
 
-        self.button = tk.Button(self, text='Найти', command=self.search)
+        self.button = tk.Button(self, text='Найти', command=self.try_search)
 
         self.new_table = ttk.Treeview(self, height=13, selectmode=tk.EXTENDED)
         self.new_scroll = tk.Scrollbar(self, command=self.new_table.yview)
         self.new_table.config(yscrollcommand=self.new_scroll.set)
         self.save_button = tk.Button(self, command=self.save, text='Сохранить данные')
-        self.reset_button = tk.Button(self, command=self.reset, text='Новая выборка')
+        self.reset_button = tk.Button(self, command=self.reset, text='Новый поиск')
 
         self.init_child()
 
-    def init_child(self):
-        self.title('Поиск по записям')
+    def init_child(self):  # Упаковка виджетов
+        self.title('Поиск по базе')
         self.geometry('500x220+100+100')
         self.resizable(True, True)
 
@@ -55,8 +55,13 @@ class SearchingWindow(tk.Toplevel):
         self.grab_set()
         self.focus_set()
 
-    def search(self):
-        self.geometry('500x400')
+    def try_search(self):  # Проверка на существование введенных данных
+        self.new_dataset = self.searching()
+        if not self.new_dataset.empty:
+            self.search()
+
+    def search(self):  # Функция поиска по индексам и атрибутам
+        self.geometry('350x400')
         self.begin_label.grid_remove()
         self.begin_entry.grid_remove()
         self.end_label.grid_remove()
@@ -66,7 +71,6 @@ class SearchingWindow(tk.Toplevel):
         self.scroll.grid_remove()
         self.button.grid_remove()
 
-        self.new_dataset = self.searching()
         self.new_table.column('#0', width=100, stretch=tk.YES)
         self.new_table["columns"] = self.search_columns
         self.new_table.heading('#0', text='number')
@@ -87,11 +91,11 @@ class SearchingWindow(tk.Toplevel):
             self.new_table.insert('', 'end', text=str(i), values=cells)
 
         self.new_table.grid(row=0, column=0)
-        self.new_scroll.grid(row=0, column=1, sticky='w', ipady=50)
+        self.new_scroll.grid(row=0, column=1, sticky='w', ipady=70)
         self.save_button.grid(row=1, column=0, columnspan=2, ipadx=100)
         self.reset_button.grid(row=2, column=0, columnspan=2, ipadx=100)
 
-    def searching(self):
+    def searching(self):  # Формирование подбазы и приверки на исключения
         if self.begin_entry.get() == '' or self.end_entry.get() == '' or len(self.parameter_entry.curselection()) == 0:
             messagebox.showinfo("Ошибка!", "Невведённые данные")
         else:
@@ -101,19 +105,16 @@ class SearchingWindow(tk.Toplevel):
             except ValueError:
                 messagebox.showinfo("Ошибка!", "Некорректные данные")
             else:
-                if len(self.master.dataset) < start < 0:
+                if len(self.master.dataset) < start or start < 0:
                     messagebox.showinfo("Ошибка!", "Начальный индекс вне диапазона!")
                 elif len(self.master.dataset) < finish:
                     messagebox.showinfo("Ошибка!", "Конечный ииндекс вне диапазона!")
                 elif finish <= start:
                     messagebox.showinfo("Ошибка!", "Значение конца диапазона должно быть больше значения его начала!")
                 else:
-                    # print("Индексы от '{}' до '{}'".format(start, finish))
                     columns = self.master.dataset.columns
-                    print(len(self.parameter_entry.curselection()))
                     self.search_columns = [columns[self.parameter_entry.curselection()[i]]
                                            for i in range(len(self.parameter_entry.curselection()))]
-                    # print("Названия столбцов: {}".format(search_columns))
                     array = np.array([])
                     for i in np.arange(len(self.search_columns)):
                         array = np.append(array, self.search_columns[i])
@@ -122,10 +123,10 @@ class SearchingWindow(tk.Toplevel):
                     sub_dataset = self.master.dataset.loc[start: finish, array]
                     return sub_dataset
 
-    def save(self):
-        SaveFile(self.new_dataset)
+    def save(self):  # Функция сохранения найденных данных в отдельный файл
+        new_csv(self.master, self.new_dataset, '')
 
-    def reset(self):
+    def reset(self):  # Функция для начала нового поиска
         self.new_table.delete(*self.new_table.get_children())
         self.new_table.grid_remove()
         self.new_scroll.grid_remove()

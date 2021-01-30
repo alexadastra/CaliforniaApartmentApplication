@@ -1,9 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
-import numpy as np
-import pandas as pd
 
-class SortingWindow(tk.Toplevel):
+
+class SortingWindow(tk.Toplevel):  # Окно сортировки данных по убыванию/возрастанию
     def __init__(self, master, window):
         super().__init__()
 
@@ -22,7 +21,7 @@ class SortingWindow(tk.Toplevel):
 
         self.init_child()
 
-    def init_child(self):
+    def init_child(self):  # Упаковка виджетов
         self.title('Отсортировать записи')
         self.geometry('440x220+100+100')
         self.resizable(True, True)
@@ -41,7 +40,7 @@ class SortingWindow(tk.Toplevel):
         self.grab_set()
         self.focus_set()
 
-    def sort_descending(self):  # По убыванию
+    def sort_descending(self):  # Функция сортировки по убыванию
         if len(self.parameter_entry.curselection()) == 0:
             messagebox.showinfo("Ошибка!", "Выберите параметр сортировки!")
         else:
@@ -53,7 +52,7 @@ class SortingWindow(tk.Toplevel):
 
             self.update_window()
 
-    def sort_ascending(self):  # По убыванию
+    def sort_ascending(self):  # Функция сортировки по возрастанию
         if len(self.parameter_entry.curselection()) == 0:
             messagebox.showinfo("Ошибка!", "Выберите параметр сортировки!")
         else:
@@ -65,11 +64,15 @@ class SortingWindow(tk.Toplevel):
 
             self.update_window()
 
-    def update_window(self):
+    def update_window(self):  # Вывод отсортированных данных в таблицу в приложении
         self.window.table.delete(*self.window.table.get_children())
-        for j in range(len(self.master.dataset.longitude)):
-            self.window.table.insert('', 'end', text=str(j),
-                              values=(self.array[j][0], self.array[j][1], self.array[j][2],
-                                      self.array[j][3], self.array[j][4], self.array[j][5],
-                                      self.array[j][6], self.array[j][7],
-                                      self.array[j][8], self.array[j][9]))
+        matrix = self.master.dataset.values
+        for i in range(len(self.master.dataset.longitude)):
+            cells = []
+            for j in range(10):
+                try:
+                    cells.append(matrix[i][j])
+                except IndexError:
+                    break
+            tuple(cells)
+            self.window.table.insert('', 'end', text=str(j), values=cells)

@@ -1,4 +1,4 @@
-def direct_deleting(root, window):
+def direct_deleting(root, window):  # Удаление домов из БД напрямую из таблицы
     items = window.table.selection()
     for i in items:
         window.table.delete(i)

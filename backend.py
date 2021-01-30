@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # from sklearn.ensemble import RandomForestClassifier
 # from sklearn.model_selection import train_test_split
@@ -177,7 +176,7 @@ def deleting_by_range(dataset):
             else:
                 if start >= 0:
                     flag_start = True
-
+        # выполняется только если ввели начало диапазона
         if (flag_start):
             try:
                 finish = int(input())
@@ -199,7 +198,7 @@ def deleting_by_range(dataset):
     return dataset
 
 
-def sort_descending(dataset):  # По убыванию
+def sort_descending(dataset):  # Сортировка по убыванию
     while True:
         columns = dataset.columns
         column = str(input())
@@ -212,7 +211,7 @@ def sort_descending(dataset):  # По убыванию
     return dataset
 
 
-def sort_ascending(dataset):  # По возрастанию
+def sort_ascending(dataset):  # Сортировка о возрастанию
     while True:
         columns = dataset.columns
         column = str(input())
@@ -226,7 +225,7 @@ def sort_ascending(dataset):  # По возрастанию
     return dataset
 
 
-def searching(dataset):
+def searching(dataset):  # Поиск по диапазону индексов и нужных столбцов таблицы
     flag_start = False
     while True:
         if not flag_start:
@@ -271,7 +270,7 @@ def searching(dataset):
     return sub_dataset
 
 
-def change(dataset):
+def change(dataset):  # Изменение параметров по индексу
     columns = dataset.columns
     ocean_proximity_array = dataset.ocean_proximity.unique()
     flag_number = False
@@ -285,13 +284,13 @@ def change(dataset):
             print("Введите целое число!")
             continue
         else:
-            if number in np.arange(len(dataset)):
+            if number in np.arange(len(dataset)):  # Проверка на ввод существующего индекса
                 flag_number = True
                 if not flag_columns:
                     print("Введите имя столбца:")
                     column = str(input())
 
-                if column in columns:
+                if column in columns:  # Проверка на корректность ввода имени столбца
                     flag_columns = True
                     if column == 'ocean_proximity':
                         print("Введите строку:")
